@@ -271,16 +271,53 @@ function App() {
     document.body.dataset.theme || "dark"
   );
   const [activeCase, setActiveCase] = React.useState(null);
+  const [ripple, setRipple] = React.useState(null);
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     document.body.dataset.theme = theme;
   }, [theme]);
 
+  const handleThemeToggle = (event) => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const size = Math.hypot(window.innerWidth, window.innerHeight) * 2;
+    setRipple({ x, y, size, nextTheme });
+    window.setTimeout(() => {
+      setTheme(nextTheme);
+      setRipple(null);
+    }, 450);
+  };
+
   return (
     <>
+      {ripple && (
+        <div
+          className={`theme-ripple ${ripple.nextTheme}`}
+          style={{
+            left: ripple.x,
+            top: ripple.y,
+            width: ripple.size,
+            height: ripple.size,
+          }}
+        />
+      )}
       <div className="page">
         <div className="topbar">
           <div className="brand">VIVEK.DEV</div>
+          <button
+            className="menu-toggle"
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
           <nav className="top-nav">
             {navItems.map((item) => (
               <a
@@ -296,11 +333,23 @@ function App() {
           <button
             className="theme-toggle"
             type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={handleThemeToggle}
             aria-label="Toggle theme"
           >
             <Icon name={theme === "dark" ? "sun" : "moon"} />
           </button>
+        </div>
+        <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={active === item.id ? "active" : ""}
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
         </div>
 
         <section className="section" id="about">
@@ -337,10 +386,16 @@ function App() {
               make software reliable over time while keeping the user experience simple and clear.
             </p>
           </div>
-          <button className="cta" type="button">
-            <Icon name="terminal" />
-            Download Resume
-          </button>
+          <div className="cta-row">
+            <a className="cta" href="./resume_cse.pdf" download>
+              <Icon name="terminal" />
+              Download Resume
+            </a>
+            <a className="cta outline" href="./vivek-app.apk" download>
+              <Icon name="code" />
+              Download APK
+            </a>
+          </div>
 
           <div className="section" style={{ marginTop: "26px" }}>
             <div className="kicker">TIMELINE</div>
@@ -551,20 +606,6 @@ function App() {
         </section>
       </div>
 
-      <nav className="bottom-nav">
-        {navItems.map((item) => (
-          <a
-            className={`nav-item ${active === item.id ? "active" : ""}`}
-            key={item.id}
-            href={`#${item.id}`}
-          >
-            <span className="nav-icon">
-              <Icon name={item.icon} />
-            </span>
-            {item.label}
-          </a>
-        ))}
-      </nav>
     </>
   );
 }
